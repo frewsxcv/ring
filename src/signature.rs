@@ -302,6 +302,21 @@ rsa_pkcs1!(RSA_PKCS1_3072_8192_SHA384_VERIFY, 3072, "3072", "SHA-384",
            &digest::SHA384);
 
 
+struct Tmp;
+
+impl VerificationAlgorithmImpl for Tmp {
+    fn verify(&self, _public_key: Input, _msg: Input, _signature: Input)
+              -> Result<(), ()> {
+        unimplemented!()
+    }
+}
+
+/// RSA_PSS_2048_8192_SHA256
+pub static RSA_PSS_2048_8192_SHA256: VerificationAlgorithm = VerificationAlgorithm {
+    implementation: &Tmp,
+};
+
+
 extern {
     #[cfg(not(feature = "no_heap"))]
     fn ECDSA_verify_signed_digest(group: *const ecc::EC_GROUP, hash_nid: c::int,

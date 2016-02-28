@@ -264,6 +264,21 @@ static bool TestRSA(const uint8_t *der, size_t der_len,
     return false;
   }
 
+  if (!RSA_encrypt(key.get(), &ciphertext_len, ciphertext, sizeof(ciphertext),
+                   kPlaintext, kPlaintextLen, RSA_PKCS1_PSS_PADDING) ||
+      ciphertext_len != RSA_size(key.get())) {
+    fprintf(stderr, "PKCS#1 v1.5 encryption failed!\n");
+    return false;
+  }
+
+  if (!RSA_decrypt(key.get(), &plaintext_len, plaintext, sizeof(plaintext),
+                   ciphertext, ciphertext_len, RSA_PKCS1_PSS_PADDING) ||
+      plaintext_len != kPlaintextLen ||
+      memcmp(plaintext, kPlaintext, plaintext_len) != 0) {
+    fprintf(stderr, "PKCS#1 v1.5 decryption failed!\n");
+    return false;
+  }
+
   /* ring: OAEP padding is not implemented yet. */
   (void)oaep_ciphertext;
   (void)oaep_ciphertext_len;

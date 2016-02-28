@@ -146,6 +146,7 @@ int RSA_encrypt(RSA *rsa, size_t *out_len, uint8_t *out, size_t max_out,
 
   switch (padding) {
     case RSA_PKCS1_PADDING:
+    case RSA_PKCS1_PSS_PADDING:
       i = RSA_padding_add_PKCS1_type_2(buf, rsa_size, in, in_len);
       break;
     case RSA_NO_PADDING:
@@ -395,6 +396,9 @@ int RSA_decrypt(RSA *rsa, size_t *out_len, uint8_t *out, size_t max_out,
     case RSA_PKCS1_PADDING:
       r = RSA_padding_check_PKCS1_type_2(out, rsa_size, buf, rsa_size);
       break;
+    case RSA_PKCS1_PSS_PADDING:
+      r = RSA_padding_check_PKCS1_type_2(out, rsa_size, buf, rsa_size);
+      break;
     case RSA_NO_PADDING:
       r = rsa_size;
       break;
@@ -507,6 +511,9 @@ int rsa_verify_raw(RSA *rsa, size_t *out_len, uint8_t *out, size_t max_out,
 
   switch (padding) {
     case RSA_PKCS1_PADDING:
+      r = RSA_padding_check_PKCS1_type_1(out, rsa_size, buf, rsa_size);
+      break;
+    case RSA_PKCS1_PSS_PADDING:
       r = RSA_padding_check_PKCS1_type_1(out, rsa_size, buf, rsa_size);
       break;
     case RSA_NO_PADDING:

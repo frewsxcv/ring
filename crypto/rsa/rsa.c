@@ -104,6 +104,111 @@ err:
   return ret;
 }
 
+// int RSA_verify_PKCS1_PSS_mgf1(RSA *rsa, const uint8_t *mHash,
+//                               const EVP_MD *Hash, const EVP_MD *mgf1Hash,
+//                               const uint8_t *EM, int sLen) {
+//   int i;
+//   int ret = 0;
+//   int maskedDBLen, MSBits, emLen;
+//   size_t hLen;
+//   const uint8_t *H;
+//   uint8_t *DB = NULL;
+//   EVP_MD_CTX ctx;
+//   uint8_t H_[EVP_MAX_MD_SIZE];
+//   EVP_MD_CTX_init(&ctx);
+//
+//   if (mgf1Hash == NULL) {
+//     mgf1Hash = Hash;
+//   }
+//
+//   hLen = EVP_MD_size(Hash);
+//
+//   /* Negative sLen has special meanings:
+//    *	-1	sLen == hLen
+//    *	-2	salt length is autorecovered from signature
+//    *	-N	reserved */
+//   if (sLen == -1) {
+//     sLen = hLen;
+//   } else if (sLen == -2) {
+//     sLen = -2;
+//   } else if (sLen < -2) {
+//     OPENSSL_PUT_ERROR(RSA, RSA_R_SLEN_CHECK_FAILED);
+//     goto err;
+//   }
+//
+//   MSBits = (BN_num_bits(rsa->n) - 1) & 0x7;
+//   emLen = RSA_size(rsa);
+//   if (EM[0] & (0xFF << MSBits)) {
+//     OPENSSL_PUT_ERROR(RSA, RSA_R_FIRST_OCTET_INVALID);
+//     goto err;
+//   }
+//   if (MSBits == 0) {
+//     EM++;
+//     emLen--;
+//   }
+//   if (emLen < ((int)hLen + sLen + 2)) {
+//     /* sLen can be small negative */
+//     OPENSSL_PUT_ERROR(RSA, RSA_R_DATA_TOO_LARGE);
+//     goto err;
+//   }
+//   if (EM[emLen - 1] != 0xbc) {
+//     OPENSSL_PUT_ERROR(RSA, RSA_R_LAST_OCTET_INVALID);
+//     goto err;
+//   }
+//   maskedDBLen = emLen - hLen - 1;
+//   H = EM + maskedDBLen;
+//   DB = OPENSSL_malloc(maskedDBLen);
+//   if (!DB) {
+//     OPENSSL_PUT_ERROR(RSA, ERR_R_MALLOC_FAILURE);
+//     goto err;
+//   }
+//   if (PKCS1_MGF1(DB, maskedDBLen, H, hLen, mgf1Hash) < 0) {
+//     goto err;
+//   }
+//   for (i = 0; i < maskedDBLen; i++) {
+//     DB[i] ^= EM[i];
+//   }
+//   if (MSBits) {
+//     DB[0] &= 0xFF >> (8 - MSBits);
+//   }
+//   for (i = 0; DB[i] == 0 && i < (maskedDBLen - 1); i++) {
+//     ;
+//   }
+//   if (DB[i++] != 0x1) {
+//     OPENSSL_PUT_ERROR(RSA, RSA_R_SLEN_RECOVERY_FAILED);
+//     goto err;
+//   }
+//   if (sLen >= 0 && (maskedDBLen - i) != sLen) {
+//     OPENSSL_PUT_ERROR(RSA, RSA_R_SLEN_CHECK_FAILED);
+//     goto err;
+//   }
+//   if (!EVP_DigestInit_ex(&ctx, Hash, NULL) ||
+//       !EVP_DigestUpdate(&ctx, zeroes, sizeof zeroes) ||
+//       !EVP_DigestUpdate(&ctx, mHash, hLen)) {
+//     goto err;
+//   }
+//   if (maskedDBLen - i) {
+//     if (!EVP_DigestUpdate(&ctx, DB + i, maskedDBLen - i)) {
+//       goto err;
+//     }
+//   }
+//   if (!EVP_DigestFinal_ex(&ctx, H_, NULL)) {
+//     goto err;
+//   }
+//   if (memcmp(H_, H, hLen)) {
+//     OPENSSL_PUT_ERROR(RSA, RSA_R_BAD_SIGNATURE);
+//     ret = 0;
+//   } else {
+//     ret = 1;
+//   }
+//
+// err:
+//   OPENSSL_free(DB);
+//   EVP_MD_CTX_cleanup(&ctx);
+//
+//   return ret;
+// }
+
 RSA *RSA_new(void) {
   RSA *rsa = OPENSSL_malloc(sizeof(RSA));
   if (rsa == NULL) {
@@ -455,4 +560,3 @@ out:
 
   return ok;
 }
-

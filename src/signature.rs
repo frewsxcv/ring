@@ -256,15 +256,25 @@ impl VerificationAlgorithmImpl for RSA_PKCS1 {
         let digest = digest::digest(self.digest_alg, msg.as_slice_less_safe());
         let signature = signature.as_slice_less_safe();
         let public_key = public_key.as_slice_less_safe();
-        bssl::map_result(unsafe {
-            RSA_verify_pkcs1_signed_digest(self.min_bits, 8192,
-                                           digest.algorithm().nid,
-                                           digest.as_ref().as_ptr(),
-                                           digest.as_ref().len(),
-                                           signature.as_ptr(), signature.len(),
-                                           public_key.as_ptr(), public_key.len())
-        })
+        rsa_verify_pkcs1_signed_digest_rust(self.min_bits, 8192, &digest,
+                                            signature, public_key)
     }
+}
+
+fn rsa_verify_pkcs1_signed_digest_rust(min_bits: usize, max_bits: usize,
+                                       digest: &digest::Digest,
+                                       signature: &[u8],
+                                       public_key: &[u8]) -> Result<(), ()> {
+    let result = unsafe {
+        RSA_verify_pkcs1_signed_digest(min_bits, max_bits,
+                                       digest.algorithm().nid,
+                                       digest.as_ref().as_ptr(),
+                                       digest.as_ref().len(),
+                                       signature.as_ptr(), signature.len(),
+                                       public_key.as_ptr(),
+                                       public_key.len())
+    };
+    bssl::map_result(result)
 }
 
 macro_rules! rsa_pkcs1 {
